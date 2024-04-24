@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -28,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -285,7 +285,7 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun SeekBarDemo() {
         // Remembering the value of the SeekBar
-        val sliderPosition = remember { mutableStateOf(0f) }
+        val sliderPosition = remember { mutableFloatStateOf(0f) }
 
         // Compose UI
         Surface(color = Color.White) {
@@ -297,9 +297,9 @@ class MainActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Slider(
-                    value = sliderPosition.value,
+                    value = sliderPosition.floatValue,
                     onValueChange = { newValue ->
-                        sliderPosition.value = newValue
+                        sliderPosition.floatValue = newValue
                     },
                     valueRange = 0f..100.0f,
                     steps = 20,
@@ -308,7 +308,7 @@ class MainActivity : ComponentActivity() {
 
                 // Display the current value of the SeekBar
                 Text(
-                    text = "Value: ${sliderPosition.value.toInt()}",
+                    text = "Value: ${sliderPosition.floatValue.toInt()}",
                     fontSize = 20.sp,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -350,7 +350,7 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun FiveStepSeekBarExample() {
-        var progress by remember { mutableStateOf(0) }
+        var progress by remember { mutableIntStateOf(0) }
 
         Surface(
             color = MaterialTheme.colorScheme.background,
