@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.exoplayer.ExoPlayer
 import com.mboti.player.Commun.convertToText
 import com.mboti.player.model.Music
@@ -224,6 +225,13 @@ class MainActivity : ComponentActivity() {
                 }) {
                     Text("+")
                 }
+
+                Button(onClick = {
+                    val playbackParameters = PlaybackParameters(1.5f) // 1.5x speed
+                    player.playbackParameters = playbackParameters
+                }) {
+                    Text("Speed")
+                }
             }
 
 
@@ -231,7 +239,6 @@ class MainActivity : ComponentActivity() {
 
             FiveStepSeekBarExample()
         }
-
     }
 
 
