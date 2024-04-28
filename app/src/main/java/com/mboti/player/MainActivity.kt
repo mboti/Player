@@ -4,12 +4,14 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,7 +30,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -36,12 +38,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.MediaItem
@@ -68,6 +71,8 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var player: ExoPlayer
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -79,18 +84,12 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    SongScreen(playList)
+                    InitProcessus(playList)
                 }
             }
         }
     }
 
-
-    @Composable
-    private fun SongScreen(playList: List<Music>) {
-        InitProcessus(playList)
-
-    }
 
 
     @Composable
@@ -227,17 +226,30 @@ class MainActivity : ComponentActivity() {
                 }
 
                 Button(onClick = {
+                    val playbackParameters = PlaybackParameters(0.5f) // 1.5x speed
+                    player.playbackParameters = playbackParameters
+                }) {
+                    Text("Speed-")
+                }
+
+                Button(onClick = {
                     val playbackParameters = PlaybackParameters(1.5f) // 1.5x speed
                     player.playbackParameters = playbackParameters
                 }) {
-                    Text("Speed")
+                    Text("Speed+")
+                }
+
+                Button(onClick = {
+                    player.setPlayWhenReady(false);
+                    player.stop();
+                    player.seekTo(0);
+                }) {
+                    Text("Stop")
                 }
             }
 
-
-            SeekBarDemo()
-
-            FiveStepSeekBarExample()
+            SeekBarVolume()
+            customProgressBar()
         }
     }
 
@@ -288,80 +300,13 @@ class MainActivity : ComponentActivity() {
 
 
 
-
     @Composable
-    fun SeekBarDemo() {
-        // Remembering the value of the SeekBar
-        val sliderPosition = remember { mutableFloatStateOf(0f) }
-
-        // Compose UI
-        Surface(color = Color.White) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Slider(
-                    value = sliderPosition.floatValue,
-                    onValueChange = { newValue ->
-                        sliderPosition.floatValue = newValue
-                    },
-                    valueRange = 0f..100.0f,
-                    steps = 20,
-                    modifier = Modifier.width(300.dp)
-                )
-
-                // Display the current value of the SeekBar
-                Text(
-                    text = "Value: ${sliderPosition.floatValue.toInt()}",
-                    fontSize = 20.sp,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-    }
-
-    @Preview
-    @Composable
-    fun PreviewSeekBarDemo() {
-        SeekBarDemo()
-    }
-
-
-
-    @Composable
-    fun FiveStepSeekBar(
-        progress: Int,
-        onProgressChanged: (Int) -> Unit
-    ) {
-        val steps = 10 // Number of steps in the SeekBar
-        val diviseur = steps.toFloat()
-
-        Slider(
-            value = progress.toFloat() / steps,
-            onValueChange = { value ->
-                val newProgress = (value * steps).toInt()
-                onProgressChanged(newProgress)
-                player.volume = newProgress/diviseur
-            },
-            colors = SliderDefaults.colors(
-                thumbColor = MaterialTheme.colorScheme.primary,
-                activeTrackColor = MaterialTheme.colorScheme.primary,
-                inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-            ),
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-    }
-
-    @Composable
-    fun FiveStepSeekBarExample() {
+    fun SeekBarVolume() {
         var progress by remember { mutableIntStateOf(0) }
 
         Surface(
             color = MaterialTheme.colorScheme.background,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxWidth()
         ) {
             Column(
                 modifier = Modifier
@@ -374,8 +319,8 @@ class MainActivity : ComponentActivity() {
                     text = "Progress: $progress",
                     style = MaterialTheme.typography.titleSmall
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                FiveStepSeekBar(
+                //Spacer(modifier = Modifier.height(16.dp))
+                SliderSeekBar(
                     progress = progress,
                     onProgressChanged = { newProgress ->
                         progress = newProgress
@@ -385,9 +330,175 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Preview
+
     @Composable
-    fun PreviewFiveStepSeekBarExample() {
-        FiveStepSeekBarExample()
+    fun SliderSeekBar(
+        progress: Int,
+        onProgressChanged: (Int) -> Unit
+    ) {
+        val steps = 10 // Number of steps in the SeekBar
+        val divided = steps.toFloat()
+
+        Slider(
+            value = progress.toFloat() / steps,
+            onValueChange = { value ->
+                val newProgress = (value * steps).toInt()
+                onProgressChanged(newProgress)
+                player.volume = newProgress/divided
+            },
+
+            //valueRange = 0f..5f,
+
+            colors = SliderDefaults.colors(
+                thumbColor = MaterialTheme.colorScheme.primary,
+                activeTrackColor = MaterialTheme.colorScheme.primary,
+                inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+            ),
+
+
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+    }
+
+
+    @Composable
+    fun LargeSeekBarEx(){
+        var progress by remember { mutableStateOf(50) }
+        LargeSeekBar(
+            progress = progress,
+            onProgressChange = { newProgress ->
+                progress = newProgress
+            }
+        )
+    }
+
+    @Composable
+    fun LargeSeekBar(
+        progress: Int,
+        onProgressChange: (Int) -> Unit
+    ) {
+        var seekbarProgress by remember { mutableStateOf(progress) }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        ) {
+            Slider(
+                value = seekbarProgress.toFloat(),
+                onValueChange = {
+                    seekbarProgress = it.toInt()
+                    onProgressChange(seekbarProgress)
+                },
+                valueRange = 0f..10f,
+                steps = 1,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+            )
+
+            Text(
+                text = seekbarProgress.toString(),
+                fontSize = 20.sp,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 8.dp)
+            )
+        }
+    }
+
+
+    // on below line we are creating a function for custom progress bar.
+    @Composable
+    fun customProgressBar() {
+        // in this method we are creating a column
+        Column(
+            // in this column we are specifying modifier to
+            // align the content within the column
+            // to center of the screen.
+            modifier = Modifier
+                .fillMaxWidth(),
+
+            // on below line we are specifying horizontal
+            // and vertical alignment for the content of our column
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // in this column we are creating a variable
+            // for the progress of our progress bar.
+            var progress: Int = 75;
+
+            // on the below line we are creating a box.
+            Box(
+                // inside this box we are adding a modifier
+                // to add rounded clip for our box with
+                // rounded radius at 15
+                modifier = Modifier
+                    .clip(RoundedCornerShape(15.dp))
+                    // on below line we are specifying
+                    // height for the box
+                    .height(30.dp)
+
+                    // on below line we are specifying
+                    // background color for box.
+                    .background(Color.Gray)
+
+                    // on below line we are
+                    // specifying width for the box.
+                    .width(300.dp)
+            ) {
+                // in this box we are creating one more box.
+                Box(
+                    // on below line we are adding modifier to this box.
+                    modifier = Modifier
+                        // on below line we are adding clip \
+                        // for the modifier with round radius as 15 dp.
+                        .clip(RoundedCornerShape(15.dp))
+
+                        // on below line we are
+                        // specifying height as 30 dp
+                        .height(30.dp)
+
+                        // on below line we are adding background
+                        // color for our box as brush
+                        .background(
+                            // on below line we are adding brush for background color.
+                            Brush.horizontalGradient(
+                                // in this color we are specifying a gradient
+                                // with the list of the colors.
+                                listOf(
+                                    // on below line we are adding two colors.
+                                    Color(0xFF0F9D58),
+                                    Color(0xF055CA4D)
+                                )
+                            )
+                        )
+                        // on below line we are specifying width for the inner box
+                        .width(300.dp * progress / 100)
+                )
+                // on below line we are creating a text for our box
+                Text(
+                    // in text we are displaying a text as progress bar value.
+                    text = "$progress %",
+
+                    // on below line we are adding
+                    // a modifier to it as center.
+                    modifier = Modifier.align(Alignment.Center),
+
+                    // on below line we are adding
+                    // font size to it.
+                    fontSize = 15.sp,
+
+                    // on below line we are adding
+                    // font weight as bold.
+                    fontWeight = FontWeight.Bold,
+
+                    // on below line we are
+                    // specifying color for our text
+                    color = Color.White
+                )
+            }
+
+        }
     }
 }
