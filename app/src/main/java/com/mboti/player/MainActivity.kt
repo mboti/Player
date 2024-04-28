@@ -18,9 +18,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -34,6 +37,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +47,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -85,12 +90,59 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     InitProcessus(playList)
+
+
+                    var sliderProgressValue by rememberSaveable { mutableStateOf(50) }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        contentAlignment = Alignment.Center
+
+                    ) {
+
+                        Column {
+
+                            Text("$sliderProgressValue", textAlign = TextAlign.Center, fontSize = 50.sp)
+
+                            Spacer(modifier = Modifier.padding(10.dp))
+
+                            Card(
+                                modifier = Modifier
+                                    .wrapContentSize(),
+                                shape = RoundedCornerShape(30.dp),
+                                elevation = CardDefaults.cardElevation()
+                            ) {
+                                VerticalSlider(
+                                    progressValue = sliderProgressValue
+                                ) {
+                                    sliderProgressValue = it
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 
+    @Composable
+    fun VerticalSlider(progressValue: Int? = null, value: (Int) -> Unit) {
 
+        val state = rememberComposeVerticalSliderState()
+
+        ComposeVerticalSlider(
+            state = state,
+            enabled = state.isEnabled.value,
+            progressValue = progressValue,
+            onProgressChanged = {
+                value(it)
+            },
+            onStopTrackingTouch = {
+                value(it)
+            }
+        )
+    }
 
     @Composable
     private fun InitProcessus(playList: List<Music>) {
