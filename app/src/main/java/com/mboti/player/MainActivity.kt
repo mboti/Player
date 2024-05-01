@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,12 +23,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,7 +53,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.MediaItem
@@ -69,6 +72,11 @@ TODO Ajouter dans le manifeste.xml les deux lignes afin de
  <application
         android:hardwareAccelerated="false"
         android:largeHeap="true"
+
+        +
+
+    implementation ("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
+    implementation ("androidx.media3:media3-exoplayer:1.3.1")
  --------------------------------------------------------*/
 
 
@@ -301,7 +309,8 @@ class MainActivity : ComponentActivity() {
             }
 
             SeekBarVolume()
-            customProgressBar()
+            CustomProgressBar()
+            ExposedDropdownMenuSample()
         }
     }
 
@@ -462,7 +471,7 @@ class MainActivity : ComponentActivity() {
 
     // on below line we are creating a function for custom progress bar.
     @Composable
-    fun customProgressBar() {
+    fun CustomProgressBar() {
         // in this method we are creating a column
         Column(
             // in this column we are specifying modifier to
@@ -550,7 +559,47 @@ class MainActivity : ComponentActivity() {
                     color = Color.White
                 )
             }
+        }
+    }
 
+
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun ExposedDropdownMenuSample() {
+        val options = listOf("Option 1", "Option 2", "Option 3", "Option 4", "Option 5")
+        var expanded by remember { mutableStateOf(false) }
+        var selectedOptionText by remember { mutableStateOf(options[0]) }
+        // We want to react on tap/press on TextField to show menu
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it },
+        ) {
+            TextField(
+                // The `menuAnchor` modifier must be passed to the text field for correctness.
+                modifier = Modifier.menuAnchor(),
+                readOnly = true,
+                value = selectedOptionText,
+                onValueChange = {},
+                label = { Text("Label") },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                colors = ExposedDropdownMenuDefaults.textFieldColors(),
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+            ) {
+                options.forEach { selectionOption ->
+                    DropdownMenuItem(
+                        text = { Text(selectionOption) },
+                        onClick = {
+                            selectedOptionText = selectionOption
+                            expanded = false
+                        },
+                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                    )
+                }
+            }
         }
     }
 }
