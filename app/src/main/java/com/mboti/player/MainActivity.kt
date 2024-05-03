@@ -4,8 +4,6 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,17 +15,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilledTonalIconToggleButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults.filledTonalIconToggleButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -36,7 +37,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableLongState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -45,16 +48,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.exoplayer.ExoPlayer
@@ -63,6 +64,7 @@ import com.mboti.player.model.Music
 import com.mboti.player.model.playList
 import com.mboti.player.ui.theme.PlayerTheme
 import kotlinx.coroutines.delay
+import kotlin.math.roundToInt
 
 
 /*--------------------------------------------------------
@@ -79,11 +81,9 @@ TODO Ajouter dans le manifeste.xml les deux lignes afin de
     implementation ("androidx.media3:media3-exoplayer:1.3.1")
  --------------------------------------------------------*/
 
-
 class MainActivity : ComponentActivity() {
 
-    private lateinit var player: ExoPlayer
-
+    lateinit var player: ExoPlayer
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -98,44 +98,16 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     InitProcessus(playList)
-
-
-                    var sliderProgressValue by rememberSaveable { mutableStateOf(50) }
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        contentAlignment = Alignment.Center
-
-                    ) {
-
-                        Column {
-
-                            Text("$sliderProgressValue", textAlign = TextAlign.Center, fontSize = 50.sp)
-
-                            Spacer(modifier = Modifier.padding(10.dp))
-
-                            Card(
-                                modifier = Modifier
-                                    .wrapContentSize(),
-                                shape = RoundedCornerShape(30.dp),
-                                elevation = CardDefaults.cardElevation()
-                            ) {
-                                VerticalSlider(
-                                    progressValue = sliderProgressValue
-                                ) {
-                                    sliderProgressValue = it
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }
     }
 
+
+
+
     @Composable
-    fun VerticalSlider(progressValue: Int? = null, value: (Int) -> Unit) {
+    fun VerticalSliderSound(progressValue: Int? = null, value: (Int) -> Unit) {
 
         val state = rememberComposeVerticalSliderState()
 
@@ -143,6 +115,11 @@ class MainActivity : ComponentActivity() {
             state = state,
             enabled = state.isEnabled.value,
             progressValue = progressValue,
+            width = 70.dp,
+            height = 200.dp,
+            radius = CornerRadius(20f, 20f),
+            trackColor = MaterialTheme.colorScheme.tertiaryContainer,
+            progressTrackColor = MaterialTheme.colorScheme.primary,
             onProgressChanged = {
                 value(it)
             },
@@ -151,6 +128,31 @@ class MainActivity : ComponentActivity() {
             }
         )
     }
+
+    @Composable
+    fun VerticalSliderSpeed(progressValue: Int? = null, value: (Int) -> Unit) {
+
+        val state = rememberComposeVerticalSliderState()
+
+        ComposeVerticalSlider(
+            state = state,
+            enabled = state.isEnabled.value,
+            progressValue = progressValue,
+            width = 30.dp,
+            height = 200.dp,
+            radius = CornerRadius(20f, 20f),
+            trackColor = MaterialTheme.colorScheme.secondary,
+            progressTrackColor = MaterialTheme.colorScheme.primary,
+            onProgressChanged = {
+                value(it)
+            },
+            onStopTrackingTouch = {
+                value(it)
+            }
+        )
+    }
+
+
 
     @Composable
     private fun InitProcessus(playList: List<Music>) {
@@ -170,9 +172,9 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+
         player.prepare()
 
-        val isPlaying = remember { mutableStateOf(false) }
         val currentPosition = remember { mutableLongStateOf(0) }
 
         LaunchedEffect(key1 = player.currentPosition, key2 = player.isPlaying) {
@@ -207,7 +209,7 @@ class MainActivity : ComponentActivity() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            TrackSlider(
+            TrackSlider1(
                 value = sliderPosition.longValue.toFloat(),
                 onValueChange = {
                     sliderPosition.longValue = it.toLong()
@@ -216,75 +218,94 @@ class MainActivity : ComponentActivity() {
                     currentPosition.longValue = sliderPosition.longValue
                     player.seekTo(sliderPosition.longValue)
                 },
-                songDuration = totalDuration.longValue.toFloat()
+                songDuration = totalDuration.longValue.toFloat(),
+                currentPosition,
+                totalDuration,
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-
-                Text(
-                    text = (currentPosition.longValue).convertToText(),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(8.dp),
-                    color = Color.Black,
-                    style = TextStyle(fontWeight = FontWeight.Bold)
-                )
-
-                val remainTime = totalDuration.longValue - currentPosition.longValue
-                Text(
-                    text = if (remainTime >= 0) remainTime.convertToText() else "",
-                    modifier = Modifier
-                        .padding(8.dp),
-                    color = Color.Black,
-                    style = TextStyle(fontWeight = FontWeight.Bold)
-                )
-            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
+
+            val isPlaying = remember { mutableStateOf(false) }
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ButtonControl(icon = R.drawable.ic_previous, size = 40.dp, onClick = {
+
+                Button(
+                    onClick = {
+                        isPlaying.value = false
+                        player.setPlayWhenReady(false);
+                        player.stop();
+                        player.seekTo(0);
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        //contentColor = Color.White
+                    ),
+                    enabled = player.isPlaying
+                ) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_stop),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(10.dp))
+
+                ButtonControl(icon = R.drawable.ic_previous, size = 20.dp, onClick = {
                     player.seekToPreviousMediaItem()
                 })
-                Spacer(modifier = Modifier.width(20.dp))
-                ButtonControl(
-                    icon = if (isPlaying.value) R.drawable.ic_pause else R.drawable.ic_play,
-                    size = 100.dp,
-                    onClick = {
+
+                Spacer(modifier = Modifier.width(10.dp))
+
+
+                FilledTonalIconToggleButton(
+                    checked = isPlaying.value,
+                    onCheckedChange = {
+                        isPlaying.value = it
                         if (isPlaying.value) {
-                            player.pause()
-                        } else {
                             player.play()
+                        } else {
+                            player.pause()
                         }
-                        isPlaying.value = player.isPlaying
-                    })
-                Spacer(modifier = Modifier.width(20.dp))
-                ButtonControl(icon = R.drawable.ic_next, size = 40.dp, onClick = {
+                    },
+                    colors =filledTonalIconToggleButtonColors(if (isPlaying.value) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary),
+                    modifier = Modifier.size(80.dp),
+                )
+                {
+                    if (isPlaying.value) {
+                        //Icon(Icons.Filled.Lock, contentDescription = "Localized description", modifier = Modifier.size(50.dp))
+                        Icon(
+                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_pause),
+                            contentDescription = null,
+                            modifier = Modifier.size(50.dp)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_play),
+                            contentDescription = null,
+                            modifier = Modifier.size(60.dp)
+                        )
+                    }
+                }
+
+
+                Spacer(modifier = Modifier.width(10.dp))
+
+                ButtonControl(icon = R.drawable.ic_next, size = 20.dp, onClick = {
                     player.seekToNextMediaItem()
                 })
             }
 
+
+
+
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(onClick = {
-                    val volume = 0.1f // 0.0f is silent, 1.0f is full volume
-                    player.volume = volume
-                }) {
-                    Text("-")
-                }
-                Button(onClick = {
-                    val volume = 1.0f // 0.0f is silent, 1.0f is full volume
-                    player.volume = volume
-                }) {
-                    Text("+")
-                }
-
                 Button(onClick = {
                     val playbackParameters = PlaybackParameters(0.5f) // 1.5x speed
                     player.playbackParameters = playbackParameters
@@ -308,9 +329,40 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            SeekBarVolume()
-            CustomProgressBar()
+            //FilledTonalIconToggleButtonSample()
+
+            Row (Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly){
+                VerticalSliderSound()
+                VerticalSliderSound()
+                VerticalSliderSound()
+                SliderSpeed()
+
+            }
+
             ExposedDropdownMenuSample()
+
+            //CustomSlider()
+        }
+    }
+
+
+    @Composable
+    fun ButtonControl(icon: Int, size: Dp, onClick: () -> Unit) {
+        Button(
+            onClick = {
+                onClick()
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondary,
+                //contentColor = Color.White
+            )
+        ) {
+            Icon(
+                imageVector = ImageVector.vectorResource(id = icon),
+                contentDescription = null,
+                modifier = Modifier.size(size)
+            )
         }
     }
 
@@ -319,11 +371,13 @@ class MainActivity : ComponentActivity() {
      * Tracks and visualizes the song playing actions.
      */
     @Composable
-    fun TrackSlider(
+    fun TrackSlider1(
         value: Float,
         onValueChange: (newValue: Float) -> Unit,
         onValueChangeFinished: () -> Unit,
-        songDuration: Float
+        songDuration: Float,
+        currentPosition: MutableLongState,
+        totalDuration: MutableLongState
     ) {
         Slider(
             value = value,
@@ -336,244 +390,103 @@ class MainActivity : ComponentActivity() {
                 inactiveTrackColor = Color.Gray,
             )
         )
-    }
 
-    @Composable
-    fun ButtonControl(icon: Int, size: Dp, onClick: () -> Unit) {
-        Box(
-            modifier = Modifier
-                .size(size)
-                .clip(CircleShape)
-                .clickable {
-                    onClick()
-                }, contentAlignment = Alignment.Center
+        Row(
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            Icon(
-                modifier = Modifier.size(size / 1.5f),
-                painter = painterResource(id = icon),
-                tint = Color.Black,
-                contentDescription = null
-            )
-        }
-    }
-
-
-
-
-
-    @Composable
-    fun SeekBarVolume() {
-        var progress by remember { mutableIntStateOf(0) }
-
-        Surface(
-            color = MaterialTheme.colorScheme.background,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth()
-                    .padding(vertical = 32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Progress: $progress",
-                    style = MaterialTheme.typography.titleSmall
-                )
-                //Spacer(modifier = Modifier.height(16.dp))
-                SliderSeekBar(
-                    progress = progress,
-                    onProgressChanged = { newProgress ->
-                        progress = newProgress
-                    }
-                )
-            }
-        }
-    }
-
-
-    @Composable
-    fun SliderSeekBar(
-        progress: Int,
-        onProgressChanged: (Int) -> Unit
-    ) {
-        val steps = 10 // Number of steps in the SeekBar
-        val divided = steps.toFloat()
-
-        Slider(
-            value = progress.toFloat() / steps,
-            onValueChange = { value ->
-                val newProgress = (value * steps).toInt()
-                onProgressChanged(newProgress)
-                player.volume = newProgress/divided
-            },
-
-            //valueRange = 0f..5f,
-
-            colors = SliderDefaults.colors(
-                thumbColor = MaterialTheme.colorScheme.primary,
-                activeTrackColor = MaterialTheme.colorScheme.primary,
-                inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-            ),
-
-
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-    }
-
-
-    @Composable
-    fun LargeSeekBarEx(){
-        var progress by remember { mutableStateOf(50) }
-        LargeSeekBar(
-            progress = progress,
-            onProgressChange = { newProgress ->
-                progress = newProgress
-            }
-        )
-    }
-
-    @Composable
-    fun LargeSeekBar(
-        progress: Int,
-        onProgressChange: (Int) -> Unit
-    ) {
-        var seekbarProgress by remember { mutableStateOf(progress) }
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        ) {
-            Slider(
-                value = seekbarProgress.toFloat(),
-                onValueChange = {
-                    seekbarProgress = it.toInt()
-                    onProgressChange(seekbarProgress)
-                },
-                valueRange = 0f..10f,
-                steps = 1,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-            )
 
             Text(
-                text = seekbarProgress.toString(),
-                fontSize = 20.sp,
+                text = (currentPosition.longValue).convertToText(),
                 modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(top = 8.dp)
+                    .weight(1f)
+                    .padding(8.dp),
+                color = Color.Black,
+                style = TextStyle(fontWeight = FontWeight.Bold)
+            )
+
+            val remainTime = totalDuration.longValue - currentPosition.longValue
+            Text(
+                text = if (remainTime >= 0) remainTime.convertToText() else "",
+                modifier = Modifier
+                    .padding(8.dp),
+                color = Color.Black,
+                style = TextStyle(fontWeight = FontWeight.Bold)
             )
         }
     }
 
 
-    // on below line we are creating a function for custom progress bar.
+
+
     @Composable
-    fun CustomProgressBar() {
-        // in this method we are creating a column
-        Column(
-            // in this column we are specifying modifier to
-            // align the content within the column
-            // to center of the screen.
-            modifier = Modifier
-                .fillMaxWidth(),
+    fun VerticalSliderSound(){
 
-            // on below line we are specifying horizontal
-            // and vertical alignment for the content of our column
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            // in this column we are creating a variable
-            // for the progress of our progress bar.
-            var progress: Int = 75;
+        val steps = 100 // Number of steps in the SeekBar
+        val divided = steps.toFloat()
 
-            // on the below line we are creating a box.
-            Box(
-                // inside this box we are adding a modifier
-                // to add rounded clip for our box with
-                // rounded radius at 15
-                modifier = Modifier
-                    .clip(RoundedCornerShape(15.dp))
-                    // on below line we are specifying
-                    // height for the box
-                    .height(30.dp)
+        var sliderProgressValue by rememberSaveable { mutableStateOf(70) }
+        Box {
 
-                    // on below line we are specifying
-                    // background color for box.
-                    .background(Color.Gray)
+            Column {
 
-                    // on below line we are
-                    // specifying width for the box.
-                    .width(300.dp)
-            ) {
-                // in this box we are creating one more box.
-                Box(
-                    // on below line we are adding modifier to this box.
-                    modifier = Modifier
-                        // on below line we are adding clip \
-                        // for the modifier with round radius as 15 dp.
-                        .clip(RoundedCornerShape(15.dp))
+                //Text("$sliderProgressValue", textAlign = TextAlign.Center, fontSize = 50.sp)
 
-                        // on below line we are
-                        // specifying height as 30 dp
-                        .height(30.dp)
+                //Spacer(modifier = Modifier.padding(10.dp))
 
-                        // on below line we are adding background
-                        // color for our box as brush
-                        .background(
-                            // on below line we are adding brush for background color.
-                            Brush.horizontalGradient(
-                                // in this color we are specifying a gradient
-                                // with the list of the colors.
-                                listOf(
-                                    // on below line we are adding two colors.
-                                    Color(0xFF0F9D58),
-                                    Color(0xF055CA4D)
-                                )
-                            )
-                        )
-                        // on below line we are specifying width for the inner box
-                        .width(300.dp * progress / 100)
-                )
-                // on below line we are creating a text for our box
-                Text(
-                    // in text we are displaying a text as progress bar value.
-                    text = "$progress %",
+                Card(
+                    modifier = Modifier.wrapContentSize(),
+                    shape = RoundedCornerShape(30.dp),
+                    elevation = CardDefaults.cardElevation()
+                ) {
+                    VerticalSliderSound(
+                        progressValue = sliderProgressValue
+                    ) {
+                        sliderProgressValue = it
 
-                    // on below line we are adding
-                    // a modifier to it as center.
-                    modifier = Modifier.align(Alignment.Center),
-
-                    // on below line we are adding
-                    // font size to it.
-                    fontSize = 15.sp,
-
-                    // on below line we are adding
-                    // font weight as bold.
-                    fontWeight = FontWeight.Bold,
-
-                    // on below line we are
-                    // specifying color for our text
-                    color = Color.White
-                )
+                        player.volume = (sliderProgressValue/divided).toFloat()
+                    }
+                }
             }
         }
     }
 
+
+
+    @Composable
+    fun SliderSpeed() {
+        var sliderSpeedPosition by remember { mutableFloatStateOf(1f) }
+        Column {
+            Slider(
+                value = sliderSpeedPosition,
+                onValueChange = { sliderSpeedPosition = arroundValue(it) },
+                colors = SliderDefaults.colors(
+                    thumbColor = MaterialTheme.colorScheme.secondary,
+                    activeTrackColor = MaterialTheme.colorScheme.secondary,
+                    inactiveTrackColor = MaterialTheme.colorScheme.secondaryContainer,
+                ),
+                //steps = ,
+                valueRange = 0.5f..2f
+            )
+            Text(text = "Speed $sliderSpeedPosition")
+        }
+    }
+
+    fun arroundValue(v:Float):Float{
+        return (v * 10.0).roundToInt() / 10.0F
+    }
 
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun ExposedDropdownMenuSample() {
-        val options = listOf("Option 1", "Option 2", "Option 3", "Option 4", "Option 5")
+        val options = listOf("2", "1.75", "1.5", "1.25" , "1", "0.75", "0.5")
         var expanded by remember { mutableStateOf(false) }
-        var selectedOptionText by remember { mutableStateOf(options[0]) }
+        var selectedOptionText by remember { mutableStateOf(options[4]) }
         // We want to react on tap/press on TextField to show menu
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = it },
+            modifier = Modifier.widthIn(max = 150.dp)
         ) {
             TextField(
                 // The `menuAnchor` modifier must be passed to the text field for correctness.
@@ -581,7 +494,7 @@ class MainActivity : ComponentActivity() {
                 readOnly = true,
                 value = selectedOptionText,
                 onValueChange = {},
-                label = { Text("Label") },
+                label = { Text("Speed") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 colors = ExposedDropdownMenuDefaults.textFieldColors(),
             )
