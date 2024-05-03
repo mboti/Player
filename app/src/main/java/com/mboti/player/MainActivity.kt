@@ -33,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -54,8 +55,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.exoplayer.ExoPlayer
@@ -205,23 +208,11 @@ class MainActivity : ComponentActivity() {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 32.dp),
-            verticalArrangement = Arrangement.SpaceEvenly,
+            verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            TrackSlider1(
-                value = sliderPosition.longValue.toFloat(),
-                onValueChange = {
-                    sliderPosition.longValue = it.toLong()
-                },
-                onValueChangeFinished = {
-                    currentPosition.longValue = sliderPosition.longValue
-                    player.seekTo(sliderPosition.longValue)
-                },
-                songDuration = totalDuration.longValue.toFloat(),
-                currentPosition,
-                totalDuration,
-            )
+
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -299,53 +290,63 @@ class MainActivity : ComponentActivity() {
                 })
             }
 
-
-
-
-            Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(onClick = {
-                    val playbackParameters = PlaybackParameters(0.5f) // 1.5x speed
-                    player.playbackParameters = playbackParameters
-                }) {
-                    Text("Speed-")
-                }
-
-                Button(onClick = {
-                    val playbackParameters = PlaybackParameters(1.5f) // 1.5x speed
-                    player.playbackParameters = playbackParameters
-                }) {
-                    Text("Speed+")
-                }
-
-                Button(onClick = {
-                    player.setPlayWhenReady(false);
-                    player.stop();
-                    player.seekTo(0);
-                }) {
-                    Text("Stop")
-                }
-            }
-
-            //FilledTonalIconToggleButtonSample()
-
             Row (Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly){
-                VerticalSliderSound()
-                VerticalSliderSound()
-                VerticalSliderSound()
-                SliderSpeed()
-
+                horizontalArrangement = Arrangement.SpaceEvenly)
+            {
+                VerticalSliderSound("ٱلْفَاتِحَةِ","Fatiha")
+                VerticalSliderSound("آيات","Ayas")
+                VerticalSliderSound("آحرون","Others")
             }
 
-            ExposedDropdownMenuSample()
+//            Row (Modifier.fillMaxWidth(),
+//                horizontalArrangement = Arrangement.SpaceBetween,
+//                verticalAlignment = Alignment.CenterVertically){
+//                SwitchBeep()
+//                SliderSpeed()
+//            }
 
-            //CustomSlider()
+            SwitchBeep()
+            SliderSpeed()
+
+
+
+            /*
+            TrackSliderPlayer(
+                value = sliderPosition.longValue.toFloat(),
+                onValueChange = {
+                    sliderPosition.longValue = it.toLong()
+                },
+                onValueChangeFinished = {
+                    currentPosition.longValue = sliderPosition.longValue
+                    player.seekTo(sliderPosition.longValue)
+                },
+                songDuration = totalDuration.longValue.toFloat(),
+                currentPosition,
+                totalDuration,
+            )
+             */
         }
     }
 
+
+    @Composable
+    fun SwitchBeep() {
+        val switchBeepState = remember { mutableStateOf(false) }
+
+        Row(Modifier.fillMaxWidth()
+            .padding(start = 20.dp, end = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween)
+        {
+            Text(text = "Beeps")
+            Switch(
+                checked = switchBeepState.value,
+                onCheckedChange = { isChecked ->
+                    switchBeepState.value = isChecked
+                }
+            )
+        }
+    }
 
     @Composable
     fun ButtonControl(icon: Int, size: Dp, onClick: () -> Unit) {
@@ -371,7 +372,7 @@ class MainActivity : ComponentActivity() {
      * Tracks and visualizes the song playing actions.
      */
     @Composable
-    fun TrackSlider1(
+    fun TrackSliderPlayer(
         value: Float,
         onValueChange: (newValue: Float) -> Unit,
         onValueChangeFinished: () -> Unit,
@@ -419,7 +420,7 @@ class MainActivity : ComponentActivity() {
 
 
     @Composable
-    fun VerticalSliderSound(){
+    fun VerticalSliderSound(titleArabic:String, title:String){
 
         val steps = 100 // Number of steps in the SeekBar
         val divided = steps.toFloat()
@@ -427,11 +428,9 @@ class MainActivity : ComponentActivity() {
         var sliderProgressValue by rememberSaveable { mutableStateOf(70) }
         Box {
 
-            Column {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-                //Text("$sliderProgressValue", textAlign = TextAlign.Center, fontSize = 50.sp)
 
-                //Spacer(modifier = Modifier.padding(10.dp))
 
                 Card(
                     modifier = Modifier.wrapContentSize(),
@@ -446,6 +445,10 @@ class MainActivity : ComponentActivity() {
                         player.volume = (sliderProgressValue/divided).toFloat()
                     }
                 }
+                Spacer(modifier = Modifier.padding(5.dp))
+                //Text("$sliderProgressValue", textAlign = TextAlign.Center, fontSize = 50.sp)
+                Text(titleArabic, textAlign = TextAlign.Center, fontSize = 22.sp)
+                Text(title, textAlign = TextAlign.Center, fontSize = 13.sp)
             }
         }
     }
@@ -455,10 +458,19 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun SliderSpeed() {
         var sliderSpeedPosition by remember { mutableFloatStateOf(1f) }
-        Column {
+        Row(Modifier.fillMaxWidth()
+            .padding(start = 20.dp, end = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(text = "Speed $sliderSpeedPosition")
+            Spacer(modifier = Modifier.padding(20.dp))
             Slider(
                 value = sliderSpeedPosition,
-                onValueChange = { sliderSpeedPosition = arroundValue(it) },
+                onValueChange = {
+                    sliderSpeedPosition = arroundValue(it)
+                    val playbackParameters = PlaybackParameters(sliderSpeedPosition) // 1.5x speed
+                    player.playbackParameters = playbackParameters
+                },
                 colors = SliderDefaults.colors(
                     thumbColor = MaterialTheme.colorScheme.secondary,
                     activeTrackColor = MaterialTheme.colorScheme.secondary,
@@ -467,7 +479,6 @@ class MainActivity : ComponentActivity() {
                 //steps = ,
                 valueRange = 0.5f..2f
             )
-            Text(text = "Speed $sliderSpeedPosition")
         }
     }
 
@@ -515,4 +526,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+
 }
