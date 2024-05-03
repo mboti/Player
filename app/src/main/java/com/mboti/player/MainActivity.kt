@@ -4,6 +4,7 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -290,27 +292,27 @@ class MainActivity : ComponentActivity() {
                 })
             }
 
-            Row (Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly)
-            {
-                VerticalSliderSound("ٱلْفَاتِحَةِ","Fatiha")
-                VerticalSliderSound("آيات","Ayas")
-                VerticalSliderSound("آحرون","Others")
+
+
+            Column (Modifier.fillMaxSize()){
+                Row (Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween)
+                {
+                    VerticalSliderSound("ٱلْفَاتِحَةِ","Fatiha")
+                    VerticalSliderSound("آيات","Ayat")
+                    VerticalSliderSound("آحرون","Others")
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                SwitchCountdown()
+                Spacer(modifier = Modifier.width(10.dp))
+                SwitchBeep()
+                SliderSpeed()
             }
 
-//            Row (Modifier.fillMaxWidth(),
-//                horizontalArrangement = Arrangement.SpaceBetween,
-//                verticalAlignment = Alignment.CenterVertically){
-//                SwitchBeep()
-//                SliderSpeed()
-//            }
-
-            SwitchBeep()
-            SliderSpeed()
 
 
 
-            /*
+
             TrackSliderPlayer(
                 value = sliderPosition.longValue.toFloat(),
                 onValueChange = {
@@ -324,7 +326,28 @@ class MainActivity : ComponentActivity() {
                 currentPosition,
                 totalDuration,
             )
-             */
+
+        }
+    }
+
+    private @Composable
+    fun SwitchCountdown() {
+        val switchCountdownState = remember { mutableStateOf(false) }
+
+        Row(
+            Modifier
+                .fillMaxWidth()
+                /*.padding(start = 20.dp, end = 20.dp)*/,
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween)
+        {
+            Text(text = "Countdown")
+            Switch(
+                checked = switchCountdownState.value,
+                onCheckedChange = { isChecked ->
+                    switchCountdownState.value = isChecked
+                }
+            )
         }
     }
 
@@ -333,8 +356,10 @@ class MainActivity : ComponentActivity() {
     fun SwitchBeep() {
         val switchBeepState = remember { mutableStateOf(false) }
 
-        Row(Modifier.fillMaxWidth()
-            .padding(start = 20.dp, end = 20.dp),
+        Row(
+            Modifier
+                .fillMaxWidth()
+            /*.padding(start = 20.dp, end = 20.dp)*/,
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween)
         {
@@ -425,26 +450,40 @@ class MainActivity : ComponentActivity() {
         val steps = 100 // Number of steps in the SeekBar
         val divided = steps.toFloat()
 
-        var sliderProgressValue by rememberSaveable { mutableStateOf(70) }
+        var sliderProgressValue by rememberSaveable { mutableIntStateOf(70) }
         Box {
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
-
-
-                Card(
-                    modifier = Modifier.wrapContentSize(),
-                    shape = RoundedCornerShape(30.dp),
-                    elevation = CardDefaults.cardElevation()
-                ) {
-                    VerticalSliderSound(
-                        progressValue = sliderProgressValue
+                Box(contentAlignment = Alignment.BottomCenter){
+                    Card(
+                        modifier = Modifier.wrapContentSize(),
+                        shape = RoundedCornerShape(20.dp),
+                        elevation = CardDefaults.cardElevation()
                     ) {
-                        sliderProgressValue = it
+                        VerticalSliderSound(
+                            progressValue = sliderProgressValue
+                        ) {
+                            sliderProgressValue = it
 
-                        player.volume = (sliderProgressValue/divided).toFloat()
+                            player.volume = (sliderProgressValue/divided)
+                        }
                     }
+
+                    val icoSpeaker = when (sliderProgressValue) {
+                        in 80..100 ->  R.drawable.ico_speaker3
+                        in 30..79 ->  R.drawable.ico_speaker2
+                        in 1..29 ->  R.drawable.ico_speaker1
+                        else -> R.drawable.ico_speaker0
+                    }
+                    Image (
+                        painter = painterResource(id = icoSpeaker),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .padding(bottom = 20.dp)
+                            .size(40.dp)
+                    )
                 }
+
                 Spacer(modifier = Modifier.padding(5.dp))
                 //Text("$sliderProgressValue", textAlign = TextAlign.Center, fontSize = 50.sp)
                 Text(titleArabic, textAlign = TextAlign.Center, fontSize = 22.sp)
@@ -458,27 +497,33 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun SliderSpeed() {
         var sliderSpeedPosition by remember { mutableFloatStateOf(1f) }
-        Row(Modifier.fillMaxWidth()
-            .padding(start = 20.dp, end = 20.dp),
+        Row(
+            Modifier
+                .fillMaxWidth()
+            /*.padding(start = 20.dp, end = 20.dp)*/,
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(text = "Speed $sliderSpeedPosition")
-            Spacer(modifier = Modifier.padding(20.dp))
-            Slider(
-                value = sliderSpeedPosition,
-                onValueChange = {
-                    sliderSpeedPosition = arroundValue(it)
-                    val playbackParameters = PlaybackParameters(sliderSpeedPosition) // 1.5x speed
-                    player.playbackParameters = playbackParameters
-                },
-                colors = SliderDefaults.colors(
-                    thumbColor = MaterialTheme.colorScheme.secondary,
-                    activeTrackColor = MaterialTheme.colorScheme.secondary,
-                    inactiveTrackColor = MaterialTheme.colorScheme.secondaryContainer,
-                ),
-                //steps = ,
-                valueRange = 0.5f..2f
-            )
+            Text(text = "Speed")
+            Spacer(modifier = Modifier.padding(40.dp))
+            Column (horizontalAlignment = Alignment.CenterHorizontally){
+                Text(text = "x$sliderSpeedPosition")
+                Slider(
+                    value = sliderSpeedPosition,
+                    onValueChange = {
+                        sliderSpeedPosition = arroundValue(it)
+                        val playbackParameters = PlaybackParameters(sliderSpeedPosition) // 1.5x speed
+                        player.playbackParameters = playbackParameters
+                    },
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.secondary,
+                        activeTrackColor = MaterialTheme.colorScheme.secondary,
+                        inactiveTrackColor = MaterialTheme.colorScheme.secondaryContainer,
+                    ),
+                    //steps = ,
+                    valueRange = 0.5f..2f
+                )
+            }
+
         }
     }
 
