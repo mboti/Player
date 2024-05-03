@@ -16,17 +16,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilledTonalIconToggleButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults.filledTonalIconToggleButtonColors
@@ -36,7 +31,6 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableLongState
@@ -134,28 +128,6 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    @Composable
-    fun VerticalSliderSpeed(progressValue: Int? = null, value: (Int) -> Unit) {
-
-        val state = rememberComposeVerticalSliderState()
-
-        ComposeVerticalSlider(
-            state = state,
-            enabled = state.isEnabled.value,
-            progressValue = progressValue,
-            width = 30.dp,
-            height = 200.dp,
-            radius = CornerRadius(20f, 20f),
-            trackColor = MaterialTheme.colorScheme.secondary,
-            progressTrackColor = MaterialTheme.colorScheme.primary,
-            onProgressChanged = {
-                value(it)
-            },
-            onStopTrackingTouch = {
-                value(it)
-            }
-        )
-    }
 
 
 
@@ -330,7 +302,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private @Composable
+    @Composable
     fun SwitchCountdown() {
         val switchCountdownState = remember { mutableStateOf(false) }
 
@@ -527,50 +499,50 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    fun arroundValue(v:Float):Float{
+    private fun arroundValue(v:Float):Float{
         return (v * 10.0).roundToInt() / 10.0F
     }
 
 
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    fun ExposedDropdownMenuSample() {
-        val options = listOf("2", "1.75", "1.5", "1.25" , "1", "0.75", "0.5")
-        var expanded by remember { mutableStateOf(false) }
-        var selectedOptionText by remember { mutableStateOf(options[4]) }
-        // We want to react on tap/press on TextField to show menu
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = it },
-            modifier = Modifier.widthIn(max = 150.dp)
-        ) {
-            TextField(
-                // The `menuAnchor` modifier must be passed to the text field for correctness.
-                modifier = Modifier.menuAnchor(),
-                readOnly = true,
-                value = selectedOptionText,
-                onValueChange = {},
-                label = { Text("Speed") },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                colors = ExposedDropdownMenuDefaults.textFieldColors(),
-            )
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-            ) {
-                options.forEach { selectionOption ->
-                    DropdownMenuItem(
-                        text = { Text(selectionOption) },
-                        onClick = {
-                            selectedOptionText = selectionOption
-                            expanded = false
-                        },
-                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                    )
-                }
-            }
-        }
-    }
+//    @OptIn(ExperimentalMaterial3Api::class)
+//    @Composable
+//    fun ExposedDropdownMenuSample() {
+//        val options = listOf("2", "1.75", "1.5", "1.25" , "1", "0.75", "0.5")
+//        var expanded by remember { mutableStateOf(false) }
+//        var selectedOptionText by remember { mutableStateOf(options[4]) }
+//        // We want to react on tap/press on TextField to show menu
+//        ExposedDropdownMenuBox(
+//            expanded = expanded,
+//            onExpandedChange = { expanded = it },
+//            modifier = Modifier.widthIn(max = 150.dp)
+//        ) {
+//            TextField(
+//                // The `menuAnchor` modifier must be passed to the text field for correctness.
+//                modifier = Modifier.menuAnchor(),
+//                readOnly = true,
+//                value = selectedOptionText,
+//                onValueChange = {},
+//                label = { Text("Speed") },
+//                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+//                colors = ExposedDropdownMenuDefaults.textFieldColors(),
+//            )
+//            ExposedDropdownMenu(
+//                expanded = expanded,
+//                onDismissRequest = { expanded = false },
+//            ) {
+//                options.forEach { selectionOption ->
+//                    DropdownMenuItem(
+//                        text = { Text(selectionOption) },
+//                        onClick = {
+//                            selectedOptionText = selectionOption
+//                            expanded = false
+//                        },
+//                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+//                    )
+//                }
+//            }
+//        }
+//    }
 
 
 }
